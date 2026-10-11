@@ -1,0 +1,62 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Build Project
+      run: |
+        swift build -c release --product DJMacPlayer
+
+    - name: Create App Bundle Structure
+      run: |
+        mkdir -p DJMacPlayer.app/Contents/MacOS
+        mkdir -p DJMacPlayer.app/Contents/Resources
+        cp .build/release/DJMacPlayer DJMacPlayer.app/Contents/MacOS/DJMacPlayer
+        
+        # Create Info.plist
+        cat << 'EOF' > DJMacPlayer.app/Contents/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>DJMacPlayer</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.djmacplayer.app</string>
+            <key>CFBundleName</key>
+            <string>DJMacPlayer</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>14.0</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </dict>
+        </plist>
+        EOF
+        
+        zip -r DJMacPlayer.app.zip DJMacPlayer.app
+
+    - name: Upload App Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DJMacPlayer-App
+        path: DJMacPlayer.app.zip

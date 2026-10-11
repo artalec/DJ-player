@@ -45,6 +45,7 @@ jobs:
             <key>NSHighResolutionCapable</key>
             <true/>
         </dict>
+        </dict>
         </plist>
         EOF
         
